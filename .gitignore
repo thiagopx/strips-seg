@@ -1,0 +1,4 @@
+results/*
+!restuls/.gitkeep
+*.py[cod]
+__pycache__
