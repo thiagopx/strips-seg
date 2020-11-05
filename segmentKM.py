@@ -60,11 +60,13 @@ def segment(
     for test, image in zip([test_front, test_back], [front, back]):
         h, w, _ = image.shape
 
+        # not working in sklearn 0.23
         tests = np.array_split(test, nCPU)
-        with Pool(nCPU) as p: # parallel computation of prediction
-            labels_list = p.map(kmeans.predict, tests)
-
-        labels = np.concatenate(labels_list)
+        # with Pool(nCPU) as p: # parallel computation of prediction
+            # labels_list = p.map(kmeans.predict, tests)
+        # labels = np.concatenate(labels_list)
+        # ===============
+        labels = kmeans.predict(test)
 
         # mask
         fg_mask = (labels != bg_label).reshape((h, -1))
