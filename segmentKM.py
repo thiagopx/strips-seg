@@ -10,18 +10,18 @@ from scipy import ndimage as ndi
 from multiprocessing import Pool
 
 
-def save(strips, masks, docname, path='.', ext='jpg'):
+def save(strips, masks, docname, path='.', ext='jpeg'):
 
     strips_path = '{}/{}/strips'.format(path, docname)
-    masks_path = '{}/{}/mask'.format(path, docname)
-    for path in [strips_path, masks_path]:
-        if not os.path.exists(path):
-            os.makedirs(path)
+    masks_path = '{}/{}/masks'.format(path, docname)
+    os.makedirs(strips_path, exist_ok=True)
+    os.makedirs(masks_path, exist_ok=True)
+
     for i in range(len(strips)):
         strip = strips[i]
         mask = masks[i]
         filename = '{}/{}{:02d}.{}'.format(strips_path, docname, i + 1, ext)
-        cv2.imwrite(filename, strip[:, :, :: -1]) # RGB => BGR
+        cv2.imwrite(filename, strip[..., :: -1]) # RGB => BGR
         filename = '{}/{}{:02d}.npy'.format(masks_path, docname, i + 1)
         np.save(filename, mask)
 
@@ -62,11 +62,11 @@ def segment(
 
         # not working in sklearn 0.23
         tests = np.array_split(test, nCPU)
-        # with Pool(nCPU) as p: # parallel computation of prediction
-            # labels_list = p.map(kmeans.predict, tests)
-        # labels = np.concatenate(labels_list)
+        with Pool(nCPU) as p: # parallel computation of prediction
+            labels_list = p.map(kmeans.predict, tests)
+        labels = np.concatenate(labels_list)
         # ===============
-        labels = kmeans.predict(test)
+        # labels = kmeans.predict(test)
 
         # mask
         fg_mask = (labels != bg_label).reshape((h, -1))
@@ -98,9 +98,6 @@ def segment(
         for y in range(h):
             fg_mask[y, : int(poly_left(y))] = False
             fg_mask[y, int(poly_right(y)) :] = False
-
-        #plt.imshow(fg_mask, cmap='gray')
-        #plt.show()
 
         # extract strips
         labels = measure.label(fg_mask)
