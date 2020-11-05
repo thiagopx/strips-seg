@@ -30,10 +30,10 @@ cnt = [0]
 
 def update_image(d=30):
     doc = docs[cnt[0]]
-    
+
     #print 'Processing %s' % doc
     sys.stdout.flush()
-    
+
     filename = os.path.join(src_path, 'front_%s%s' % (doc, ext))
     front = cv2.imread(filename)[:, : -d]
     filename = os.path.join(src_path, 'back_%s%s' % (doc, ext))
@@ -50,7 +50,7 @@ def save(strips, masks):
     for path in [strips_path, masks_path]:
         if not os.path.exists(path):
             os.makedirs(path)
-        
+
     for i in range(len(strips)):
         # print 'Saving strip %d' % i
         strip = strips[i]
@@ -87,7 +87,7 @@ def press(event):
         if None not in window + background:
             strips, masks = segment()
             save(strips, masks)
-            
+
     elif event.key == 'b':
         background[0] = (int(event.xdata), int(event.ydata))
         plot()
@@ -97,7 +97,7 @@ def press(event):
     elif event.key == '2' and event.inaxes is not None: # bottom-right
         window[1] = (int(event.xdata), int(event.ydata))
         plot()
-        
+
     elif event.key == 'right':
         cnt[0] = min(cnt[0] + 1, len(docs) - 1)
         update_image()
@@ -106,14 +106,14 @@ def press(event):
         cnt[0] = max(cnt[0] - 1, 0)
         update_image()
         plot()
-    
+
     #print window
     #print background
-#    draw    
+#    draw
 
 def quantize(image, perc=0.05, n_colors=3):
     '''
-    Adapted from: 
+    Adapted from:
     http://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html
     '''
     norm = np.array(image, dtype=np.float64) / 255
@@ -144,7 +144,7 @@ def segment(image, bg_sample):
     label = labels[background[0][1] - y_min, background[0][0] - x_min]
     #print label
     bg = (labels == label)
-    
+
     #print 'Remove small regions... ',
     sys.stdout.flush()
     # Remove small regions
@@ -156,8 +156,8 @@ def segment(image, bg_sample):
             bg[y, x] = False
     #print 'done!'
     sys.stdout.flush()
-    
-    #print 'Foreground segmentation... ',        
+
+    #print 'Foreground segmentation... ',
     sys.stdout.flush()
     # Foreground segmentation
     rect = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
@@ -180,7 +180,7 @@ def segment(image, bg_sample):
     return strips, masks
 
 if __name__ == '__main__':
-    
+
 #fig.canvas.mpl_connect('key_press_event', press)
     front = cv2.imread('front_D008.jpeg')[: 1000, : 1000]
     #back = cv2.imread('back_D008.jpeg')
@@ -192,14 +192,14 @@ if __name__ == '__main__':
     window_size = 3
     W = w - window_size + 1
     H = h - window_size + 1
-  
+
     images= []
     for dx in range(window_size):
         for dy in range(window_size):
             images.append(image[dy : H + dy, dx : W + dx])
     data = np.stack(images).transpose((1, 2, 0, 3))
     data_lin = np.reshape(data, (-1, 3 * (window_size) ** 2))
-        
+
     # EM
     #gmm = mixture.GaussianMixture(n_components=3, covariance_type='spherical', max_iter=1)
     #gmm.fit(data_lin)
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     predicted = labels.reshape((H, -1))
     #quantized = colors[labels].reshape(h, w, d)
 
-        
+
     #mask = np.zeros_like(clusters)
     bg_color = bg_sample.reshape((-1, 3)).mean(axis=0)
     bg_label = 0
@@ -226,9 +226,9 @@ if __name__ == '__main__':
             dist = label_dist
         print(label_color, bg_color, label_dist, dist)
         #print(labeled)
-        
+
         #print(mean_color)
-    
+
     mask = (predicted.reshape((H, -1)) == bg_label)
     #np.where(predicted == bg_label)
     #mask[]
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     #print(clusters.shape)
     plt.show()
 
-    
+
     #update_image()
     #plot()
-    
+

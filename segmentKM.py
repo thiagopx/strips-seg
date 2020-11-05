@@ -11,12 +11,12 @@ from multiprocessing import Pool
 
 
 def save(strips, masks, docname, path='.', ext='jpg'):
-    
+
     strips_path = '{}/{}/strips'.format(path, docname)
     masks_path = '{}/{}/mask'.format(path, docname)
     for path in [strips_path, masks_path]:
         if not os.path.exists(path):
-            os.makedirs(path)        
+            os.makedirs(path)
     for i in range(len(strips)):
         strip = strips[i]
         mask = masks[i]
@@ -40,13 +40,13 @@ def segment(
     bg_sample = back[:, - int(bg_sample_perc * w) :]
 
     # train data
-    sampled = front[:: sample_factor, :: sample_factor] 
+    sampled = front[:: sample_factor, :: sample_factor]
     train = sampled.reshape(-1, 3)
 
     # test data
     test_front = front.reshape(-1, 3)
     test_back = back.reshape(-1, 3)
-    
+
     # kmeans clustering
     bg_color = np.median(bg_sample.reshape((-1, 3)), axis=0)
     centers = np.array([bg_color, [0, 0, 0], [255, 255, 255]])
@@ -57,7 +57,7 @@ def segment(
     strips = []
     masks = []
     mean_area = -1
-    for test, image in zip([test_front, test_back], [front, back]):    
+    for test, image in zip([test_front, test_back], [front, back]):
         h, w, _ = image.shape
 
         tests = np.array_split(test, nCPU)
@@ -92,11 +92,11 @@ def segment(
         poly_left = np.poly1d(np.polyfit(y_data, x_left_data, 1))
         poly_right = np.poly1d(np.polyfit(y_data, x_right_data, 1))
 
-        # fill side margins    
+        # fill side margins
         for y in range(h):
             fg_mask[y, : int(poly_left(y))] = False
             fg_mask[y, int(poly_right(y)) :] = False
-            
+
         #plt.imshow(fg_mask, cmap='gray')
         #plt.show()
 
@@ -113,7 +113,7 @@ def segment(
                 mask = (255 * region.image).astype(np.uint8)
                 hm, wm = mask.shape
                 strip = np.zeros((hm, wm, 3), dtype=np.uint8)
-                strip[y - min_row, x - min_col] = image[y, x] 
+                strip[y - min_row, x - min_col] = image[y, x]
                 masks.append(mask)
                 strips.append(strip)
     return strips, masks
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     front_fnames = []
     back_fnames = []
     ids = []
-    
+
     for fname in glob.glob('test/anotacao_*.txt'):
         for line in open(fname):
             names = line.split()
@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     i = 1
     total = len(front_fnames)
-    t0 = time.time()  
+    t0 = time.time()
     for front_fname, back_fname in zip(front_fnames, back_fnames):
 #        if 'gfu71f00' not in front_fname:
 #            continue
